@@ -1,7 +1,8 @@
 ## 大六壬（DaLiuRen）/六壬神課（りくじんしんか） for Python
 
-此為[dalurenpython](https://github.com/wlhyl/dalurenpython)的繁體中文版本。
-僅做語言及格式之修改，並無內容上的更動。
+此為[dalurenpython](https://github.com/wlhyl/dalurenpython)的繁體中文版本，僅做語言及格式之修改，並無內容上的更動。
+
+![image-20200628102135350](README.assets/image-20200628102135350.png)
 
 ### 常見問題
 
