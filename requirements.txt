@@ -2,7 +2,7 @@ astropy==3.0.4
 eacal==0.0.3
 ganzhiwuxin==0.1
 jdcal==1.4
-numpy==1.15.2
+numpy==1.22.0
 prettytable==0.7.2
 pyephem==3.7.6.0
 PyQt5==5.11.2
