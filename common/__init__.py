@@ -22,45 +22,67 @@ def GetShiChen(h):
 # 返回 四柱 月将
 def GetLi(y, m, d, h, minu, sec):
     timeString = "{0}-{1:02d}-{2:02d} {3:02d}:{4:02d}:{5:02d}".format(
-        y, m, d, h, minu, sec)
+        y, m, d, h, minu, sec
+    )
 
     占时Time = datetime.datetime.strptime(timeString, "%Y-%m-%d %H:%M:%S")
-    前一节Time = None
-    前一节Num = None
-    后一节Time = None
-    后一节Num = None
-    c = eacal.EACal(zh_t=True)
-    for x in c.get_annual_solar_terms(y):
-        if x[1] % 2 == 0:
-            前一节Time = 后一节Time
-            后一节Time = x[2].replace(tzinfo=None)
-            前一节Num = 后一节Num
-            后一节Num = x[1]
-        if 前一节Time is not None and 后一节Time is not None:
-            if 占时Time >= 前一节Time and 占时Time <= 后一节Time:
-                break
-    气List = c.get_specified_solar_term(y, 前一节Num + 1)
-    气Time = 气List[2].replace(tzinfo=None)
 
-    气 = "{} {}".format(气List[0],
-                       datetime.datetime.strftime(气List[2],
-                                                  "%Y-%m-%d %H:%M:%S"))
-#     气 = "{} {}".format(气List[0], 气List[2].replace(tzinfo=None))
-    节 = c.get_specified_solar_term(y, 前一节Num)[0]
-    节 = "{} {}".format(节, datetime.datetime.strftime(前一节Time,
-                                                     "%Y-%m-%d %H:%M:%S"))
+    # ====== 修正：用跨年( y-1, y, y+1 )節氣表找「節/氣」，避免年初節氣跳到隔年 ======
+    c = eacal.EACal(zh_t=True)
+
+    # 收集三年的節氣（name, num, time-naive）
+    terms = []
+    for yy in (y - 1, y, y + 1):
+        for name, num, t in c.get_annual_solar_terms(yy):
+            terms.append((name, num, t.replace(tzinfo=None)))
+    terms.sort(key=lambda x: x[2])
+
+    now = 占时Time
+
+    # 找到 now 之前最近的一個「節」（num % 2 == 0），並取其後一個作為「氣」
+    jie_idx = None
+    for i, (name, num, t) in enumerate(terms):
+        if num % 2 == 0 and t <= now:
+            jie_idx = i
+
+    # 保底：如果 now 比最早節氣還早，就取第一個「節」
+    if jie_idx is None:
+        for i, (name, num, t) in enumerate(terms):
+            if num % 2 == 0:
+                jie_idx = i
+                break
+
+    # 再保底：理論上不會發生
+    if jie_idx is None:
+        jie_idx = 0
+
+    # 取得 節/氣 時間（確保 jie_idx+1 存在；若剛好是最後一筆就往前退一格）
+    if jie_idx >= len(terms) - 1:
+        jie_idx = len(terms) - 2
+
+    节_name, 节_num, 前一节Time = terms[jie_idx]
+    气_name, 气_num, 气Time = terms[jie_idx + 1]
+
+    节 = "{} {}".format(
+        节_name, datetime.datetime.strftime(前一节Time, "%Y-%m-%d %H:%M:%S")
+    )
+    气 = "{} {}".format(
+        气_name, datetime.datetime.strftime(气Time, "%Y-%m-%d %H:%M:%S")
+    )
+    # ====== 修正結束 ======
 
     __年干支, __月干支, __日干支 = c.get_cycle_ymd(datetime.datetime(y, m, d))
     年柱 = 干支(干(__年干支[0]), 支(__年干支[1]))
     月柱 = 干支(干(__月干支[0]), 支(__月干支[1]))
     日柱 = 干支(干(__日干支[0]), 支(__日干支[1]))
 
+    # 月將：先取「月支六合之支」，再依「是否已過氣」微調（保留你原本規則）
     for i in ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]:
         if 月柱.支.六合(支(i)):
-            月将=支(i)
+            月将 = 支(i)
             break
     if 占时Time < 气Time:
-        月将=月将 + 1
+        月将 = 月将 + 1
 
     时辰 = GetShiChen(h)
     if 日柱.干 == 干("甲") or 日柱.干 == 干("己"):
@@ -73,10 +95,13 @@ def GetLi(y, m, d, h, minu, sec):
         子时天干 = 干("庚")
     if 日柱.干 == 干("戊") or 日柱.干 == 干("癸"):
         子时天干 = 干("壬")
-    时柱 = 干支(子时天干 + (时辰 - 支('子')), 时辰)
+
+    时柱 = 干支(子时天干 + (时辰 - 支("子")), 时辰)
     if 时辰 == 支("子"):
         日柱 = 日柱 + 1
+
     return [年柱, 月柱, 日柱, 时柱, 月将, 节, 气]
+
 
 
 class 旺衰():
