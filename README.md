@@ -1,3 +1,10 @@
+> **重要通知：本專案已停止維護**
+> 
+> 本專案（daliurenpython-zh-tw）之核心架構已全面升級並移轉。後續的所有功能更新、Bug 修復以及現代化 Web 介面開發，將全數接續在全新專案 [daliuren-web-engine](https://github.com/d1210182010/daliuren-web-engine) 進行。
+> 
+
+
+
 ![image-20200628102135350](README.assets/image-20200628102135350.png)
 
 
