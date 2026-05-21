@@ -1,4 +1,4 @@
-astropy==3.0.4
+astropy==5.3.3
 eacal==0.0.3
 ganzhiwuxin==0.1
 jdcal==1.4
